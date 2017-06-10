@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:jaxws="http://cxf.apache.org/jaxws"
+		xmlns:cxf="http://cxf.apache.org/core"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://cxf.apache.org/jaxws
+		http://cxf.apache.org/schemas/jaxws.xsd
+		http://cxf.apache.org/core
+        http://cxf.apache.org/schemas/core.xsd
+		">
+	<!-- WS-Security拦截器 -->
+	<bean id="wss4jIn" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
+		<!-- 拦截器的构造函数参数 -->
+		<constructor-arg>
+			<map>
+				<!-- 验签 与 解密 -->
+	            <entry key="action" value="Signature Encrypt"/>
+	            <!-- 验签（使用对方的公钥） -->
+	            <entry key="signaturePropFile" value="client-public.properties"/>
+	            <!-- 解密（使用自己的私钥） -->
+	            <entry key="decryptionPropFile" value="server-private.properties"/>
+	            <entry key="passwordCallbackRef" value-ref="serverPasswordCallback"/>
+	            
+			</map>
+		</constructor-arg>
+	</bean>
+	<jaxws:endpoint id="helloService" implementor="#helloServiceImpl" address="/hello">
+		<!-- 拦截接受客户端的消息 -->
+		<jaxws:inInterceptors>
+			<ref bean="wss4jIn"/>
+		</jaxws:inInterceptors>
+	</jaxws:endpoint>
+	
+	<cxf:bus>
+        <cxf:features>
+            <cxf:logging/>
+        </cxf:features>
+    </cxf:bus>
+
+</beans>
